@@ -21,6 +21,7 @@ namespace Sources {
 namespace CameraOpenCV {
 
 using namespace cv;
+using namespace std;
 
 /*!
  * \class CameraOpenCV_Source
@@ -88,7 +89,8 @@ protected:
 
 	bool trig;
 
-	Base::Property<int> m_device;
+        Base::Property<int> m_device;
+        Base::Property<string> m_file;
 	Base::Property<int> m_width;
 	Base::Property<int> m_height;
 	Base::Property<bool> m_triggered;

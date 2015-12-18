@@ -16,15 +16,17 @@ namespace Sources {
 namespace CameraOpenCV {
 
 CameraOpenCV_Source::CameraOpenCV_Source(const std::string & name) : Base::Component(name),
-		m_device("device", boost::bind(&CameraOpenCV_Source::onDeviceCahnged, this, _1, _2), 0),
+                m_device("device", boost::bind(&CameraOpenCV_Source::onDeviceCahnged, this, _1, _2), 0),
+                m_file("file", string("")),
 		m_width("width", 640, "combo"),
-		m_height("width", 480, "combo"),
+                m_height("height", 480, "combo"),
 		m_triggered("triggered", false)
 {
 	LOG(LTRACE) << "CameraOpenCV_Source::CameraOpenCV_Source()\n";
 	trig = true;
 
 	registerProperty(m_device);
+        registerProperty(m_file);
 
 	m_width.addConstraint("320");
 	m_width.addConstraint("640");
@@ -55,7 +57,10 @@ void CameraOpenCV_Source::prepareInterface() {
 bool CameraOpenCV_Source::onInit() {
 	LOG(LTRACE) << "CameraOpenCV_Source::initialize()\n";
 
-	cap.open(m_device);
+        if(m_file != "")
+            cap.open(m_file);
+        else
+            cap.open(m_device);
 
 	if (cap.isOpened()) {
 		LOG(LTRACE) << "CameraOpenCV: device opened\n";
@@ -129,10 +134,14 @@ void CameraOpenCV_Source::onDeviceCahnged(int old_device, int new_device) {
 }
 
 void CameraOpenCV_Source::changeDevice() {
+    LOG(LINFO) << "Setting new device!";
 	m_change_device = false;
 	valid = false;
 	cap.release();
-	cap.open(m_device);
+        if(m_file != "")
+            cap.open(m_file);
+        else
+            cap.open(m_device);
 
 	if (!cap.isOpened()) {
 		LOG(LWARNING) << "Couldn't set new device!";
