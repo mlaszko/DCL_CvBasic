@@ -24,6 +24,8 @@ CvFindCirclesGrid_Processor::CvFindCirclesGrid_Processor(const std::string & nam
 	prop_width("grid.width", 9),
 	prop_height("grid.height", 6),
 	prop_size("grid.size", 1),
+	
+	//you should use 0/1 not true/false in *.xml task file
 	prop_inverse("image.inverse",false),
 
 	prop_interpolation_type("scale.interpolation_type", INTER_NEAREST, "combo")
@@ -52,7 +54,6 @@ void CvFindCirclesGrid_Processor::prepareInterface() {
 	registerStream("in_img", &in_img);
 	registerStream("out_pattern", &out_gridPattern);
 	registerStream("out_imagePosition", &out_imagePosition);
-	registerStream("out_img", &out_img);
 
 	// Register handler responsible for finding grid pattern.
 	registerHandler("onNewImage", boost::bind(&CvFindCirclesGrid_Processor::onNewImage, this));
@@ -96,7 +97,6 @@ void CvFindCirclesGrid_Processor::initGridPattern() {
 
 	// Set model points.
 	gridPattern->setModelPoints(modelPoints);
-	CLOG(LWARNING) << gridPattern->getModelPoints();
 }
 
 void CvFindCirclesGrid_Processor::sizeCallback(int old_value, int new_value) {
@@ -145,12 +145,10 @@ void CvFindCirclesGrid_Processor::onNewImage()
 			CLOG(LWARNING) << "Pattern not found\n";
 			// TODO: add unit type: not found
 		}
-		out_img.write(image);
+		
 	} catch (const Exception& e) {
 		CLOG(LERROR) << e.what() << "\n";
 	}
-
-
 	
 	LOG(LTRACE) << "void CvFindCirclesGrid_Processor::onNewImage() end\n";
 }

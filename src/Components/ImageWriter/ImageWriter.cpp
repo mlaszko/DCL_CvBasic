@@ -27,7 +27,7 @@ ImageWriter::ImageWriter(const std::string & name) :
 		format("format", std::string("png")),
 		digits("digits", 2),
 		count("count", 1),
-		prop_auto_trigger("mode.auto_trigger", false)
+		prop_auto_trigger("auto_trigger", false)
 {
 	registerProperty(directory);
 	registerProperty(base_name);
@@ -48,9 +48,7 @@ void ImageWriter::prepareInterface() {
 	for (int i = 0; i < count; ++i) {
 		char id = '0'+i;
 		hand = new Base::EventHandler2;
-		hand->setup(boost::bind(&ImageWriter::write_image_N, this, i));
-		handlers.push_back(hand);
-		registerHandler(std::string("write_image_")+id, hand);
+		registerHandler(std::string("write_image_")+id, boost::bind(&ImageWriter::write_image_N, this, i));
 
 		Base::DataStreamIn<cv::Mat, Base::DataStreamBuffer::Newest> * stream = new Base::DataStreamIn<cv::Mat, Base::DataStreamBuffer::Newest>;
 		in_img.push_back(stream);
@@ -64,7 +62,7 @@ void ImageWriter::prepareInterface() {
 
 
 	// register aliases for first handler and streams
-	registerHandler("write_image", handlers[0]);
+	registerHandler("write_image", boost::bind(&ImageWriter::write_image_N, this, 0));
 	registerStream("in_img", in_img[0]);
 
 	counts.resize(count, 0);
@@ -84,13 +82,15 @@ void ImageWriter::prepareInterface() {
 		formats.push_back(format);
 	}
 
-    // Register handlers - next image, can be triggered manually (from GUI) or by new data present in_load_next_image_trigger dataport.
+
+	registerStream("in_save_trigger", &in_save_trigger);
+    // Register handlers - save image, can be triggered manually (from GUI) or by new data present in_load_next_image_trigger dataport.
     // 1st version - manually.
     registerHandler("SaveImage", boost::bind(&ImageWriter::onSaveButtonPressed, this));
 
     // 2nd version - external trigger.
     registerHandler("onSaveTriggered", boost::bind(&ImageWriter::onSaveTriggered, this));
-    addDependency("onSaveTriggered", &in_trigger);
+    addDependency("onSaveTriggered", &in_save_trigger);
 
 }
 
@@ -119,7 +119,7 @@ void ImageWriter::onSaveButtonPressed() {
 
 void ImageWriter::onSaveTriggered(){
 	CLOG(LTRACE) << name() << "::onSaveTriggered()";
-    in_trigger.read();
+	in_save_trigger.read();
 	for (int i = 0; i < count; ++i)
 		save_flags[i] = true;
 }
@@ -147,7 +147,7 @@ void ImageWriter::write_image_N(int n) {
 
 			// Write to file depending on the extension.
 			// Write to yaml.
-			if ((formats[n] == "yaml") || (formats[n] == "yml")){
+			if ((formats[n] == "yaml") || (formats[n] == "yml") || (formats[n] == "xml") || (formats[n] == "yml.gz") || (formats[n] == "yaml.gz") || (formats[n] == "xml.gz")){
 				CLOG(LNOTICE) << "Writing "<< n <<"-th image to YAML file" << fname;
 			    cv::FileStorage fs(fname, cv::FileStorage::WRITE);
 				fs << "img" << in_img[n]->read();

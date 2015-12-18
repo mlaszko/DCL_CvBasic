@@ -4,13 +4,15 @@ SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Create a variable containing all .cpp files:
 FILE(GLOB files *.cpp)
 
-# Find OpenCV library files
+# Find required packages
 FIND_PACKAGE( OpenCV REQUIRED )
 
+
 # Create an executable file from sources:
-ADD_LIBRARY(procCvGaussianBlur SHARED ${files})
+ADD_LIBRARY(FeatureDetector SHARED ${files})
 
 # Link external libraries
-TARGET_LINK_LIBRARIES(procCvGaussianBlur ${OpenCV_LIBS} ${DisCODe_LIBRARIES})
+TARGET_LINK_LIBRARIES(FeatureDetector ${DisCODe_LIBRARIES} 
+	${OpenCV_LIBS})
 
-INSTALL_COMPONENT(procCvGaussianBlur)
+INSTALL_COMPONENT(FeatureDetector)
